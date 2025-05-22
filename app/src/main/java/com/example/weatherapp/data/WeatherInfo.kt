@@ -13,6 +13,7 @@ data class WeatherMainInfo(
     val maxTemp: String,
     val minTemp: String,
     val condition: Condition,
+    val hours: List<WeatherCardInfo>,
 )
 
 open class WeatherCardInfo(

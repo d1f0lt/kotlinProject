@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -16,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.R
+import com.example.weatherapp.data.WeatherMainInfo
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -41,7 +44,7 @@ fun Background() {
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun MainCard() {
+fun MainCard(cardInfo: MutableState<WeatherMainInfo>) {
     Column(
         modifier =
             Modifier
@@ -64,7 +67,6 @@ fun MainCard() {
                         .fillMaxWidth()
                         .padding(top = 3.dp, bottom = 3.dp, start = 10.dp, end = 10.dp),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(40.dp),
             ) {
                 Row(
                     modifier =
@@ -83,23 +85,35 @@ fun MainCard() {
                         )
                     }
                 }
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    Text(
+                        text = cardInfo.value.date,
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = TextStyle(fontSize = 15.sp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(30.dp))
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
                     Text(
-                        text = "Moscow",
+                        text = cardInfo.value.city,
                         style = TextStyle(fontSize = 42.sp),
                         color = Color.White,
                     )
                     Text(
-                        text = "23°C",
+                        text = cardInfo.value.curTemp,
                         style = TextStyle(fontSize = 108.sp),
                         color = Color.White,
                     )
                     Text(
-                        text = "Clear 19°/8°",
-                        style = TextStyle(fontSize = 32.sp),
+                        text = "${cardInfo.value.condition.condition} ${cardInfo.value.maxTemp}/${cardInfo.value.minTemp}",
+                        style = TextStyle(fontSize = 26.sp),
                         color = Color.White,
                     )
 
@@ -112,7 +126,7 @@ fun MainCard() {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = "Last update: 18 May 15:23",
+                            text = "Last update: ${cardInfo.value.lastUpdate}",
                             style = TextStyle(fontSize = 16.sp),
                             color = Color.White.copy(alpha = 0.5f),
                         )

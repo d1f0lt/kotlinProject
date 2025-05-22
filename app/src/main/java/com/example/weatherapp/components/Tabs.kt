@@ -1,5 +1,8 @@
 package com.example.weatherapp.components
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +21,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,21 +29,28 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.weatherapp.data.Condition
+import com.example.weatherapp.data.ResponseStorage
 import com.example.weatherapp.data.WeatherCardInfo
+import com.example.weatherapp.data.WeatherCardInfoPerDay
+import com.example.weatherapp.data.WeatherMainInfo
+import com.example.weatherapp.data.getMainScreenInfo
 import kotlinx.coroutines.launch
 
 // @Preview
+@RequiresApi(Build.VERSION_CODES.O)
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun Tabs() {
+fun Tabs(
+    mainCardInfo: MutableState<WeatherMainInfo>,
+    daysList: List<WeatherCardInfo>,
+) {
     val tabList = listOf<String>("Days", "Hours")
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabList.size })
     val coroutineScope = rememberCoroutineScope()
+    val hoursList = mainCardInfo.value.hours
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -74,39 +85,40 @@ fun Tabs() {
             modifier = Modifier.weight(1.0f),
         ) { pageIndex ->
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(15) {
-                    ListItemPreview()
+                if (tabList[pageIndex] == "Days") {
+                    items(daysList.size) { cardIndex ->
+                        ListItem(mainCardInfo, daysList[cardIndex], cardIndex)
+                    }
+                } else if (tabList[pageIndex] == "Hours") {
+                    items(hoursList.size) { cardIndex ->
+                        ListItem(mainCardInfo, hoursList[cardIndex], cardIndex)
+                    }
                 }
             }
         }
     }
 }
 
-@Suppress("ktlint:standard:function-naming")
-@Preview
-@Composable
-fun ListItemPreview() {
-    ListItem(
-        WeatherCardInfo(
-            "Today",
-            Condition(
-                imageUrl = "//cdn.weatherapi.com/weather/64x64/day/116.png",
-                condition = "Cloudy",
-            ),
-            "23°C",
-        ),
-    )
-}
-
+@RequiresApi(Build.VERSION_CODES.O)
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun ListItem(itemInfo: WeatherCardInfo) {
+fun ListItem(
+    mainCardInfo: MutableState<WeatherMainInfo>,
+    itemInfo: WeatherCardInfo,
+    currentCardIndex: Int,
+) {
     Card(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .padding(top = 3.dp)
-                .drawBehind {
+                .clickable {
+                    if (itemInfo is WeatherCardInfoPerDay) {
+                        ResponseStorage.doWithResponse { json ->
+                            mainCardInfo.value = getMainScreenInfo(json, currentCardIndex)
+                        }
+                    }
+                }.drawBehind {
                     val borderWidth = 1.dp.toPx()
                     drawLine(
                         color = Color.Gray,

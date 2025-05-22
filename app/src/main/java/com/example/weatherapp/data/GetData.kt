@@ -3,6 +3,7 @@ package com.example.weatherapp.data
 import android.os.Build
 import androidx.annotation.RequiresApi
 import org.json.JSONObject
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -15,6 +16,7 @@ fun formatDate(
     toPattern: DateTimeFormatter,
 ): String = LocalDateTime.parse(dateStr, fromPattern).format(toPattern)
 
+@RequiresApi(Build.VERSION_CODES.O)
 fun getDaysWeather(response: JSONObject): List<WeatherCardInfo> {
     val days = response.getJSONObject("forecast").getJSONArray("forecastday")
     val result = mutableListOf<WeatherCardInfo>()
@@ -24,14 +26,26 @@ fun getDaysWeather(response: JSONObject): List<WeatherCardInfo> {
         val dayInfo = item.getJSONObject("day")
         result.add(
             WeatherCardInfoPerDay(
-                day = item.get("date") as String,
+                day = (
+                    if (i == 0) {
+                        "Today"
+                    } else if (i == 1) {
+                        "Tomorrow"
+                    } else {
+                        LocalDate
+                            .parse(
+                                item.get("date") as String,
+                                DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+                            ).format(DateTimeFormatter.ofPattern("EEE"))
+                    }
+                ),
                 condition =
                     Condition(
                         imageUrl = dayInfo.getJSONObject("condition").get("icon") as String,
                         condition = dayInfo.getJSONObject("condition").get("text") as String,
                     ),
-                minTemp = dayInfo.get("mintemp_c") as String,
-                maxTemp = dayInfo.get("maxtemp_c") as String,
+                minTemp = proccessTemp(dayInfo.get("mintemp_c") as Double),
+                maxTemp = proccessTemp(dayInfo.get("maxtemp_c") as Double),
             ),
         )
     }
@@ -39,9 +53,10 @@ fun getDaysWeather(response: JSONObject): List<WeatherCardInfo> {
     return result
 }
 
-fun getHourWeather(
+@RequiresApi(Build.VERSION_CODES.O)
+private fun getHoursWeather(
     response: JSONObject,
-    day: Int,
+    day: Int = 0,
 ): List<WeatherCardInfo> {
     val days = response.getJSONObject("forecast").getJSONArray("forecastday")
     val result = mutableListOf<WeatherCardInfo>()
@@ -51,13 +66,18 @@ fun getHourWeather(
         val hour = dayInfo[i] as JSONObject
         result.add(
             WeatherCardInfoPerHour(
-                hour = hour.get("time") as String,
+                hour =
+                    formatDate(
+                        hour.get("time") as String,
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
+                        DateTimeFormatter.ofPattern("HH:mm"),
+                    ),
                 condition =
                     Condition(
                         imageUrl = hour.getJSONObject("condition").get("icon") as String,
                         condition = hour.getJSONObject("condition").get("text") as String,
                     ),
-                temp = hour.get("temp_c") as String,
+                temp = proccessTemp(hour.get("temp_c") as Double),
             ),
         )
     }
@@ -74,10 +94,11 @@ fun getMainScreenInfo(
 ): WeatherMainInfo {
     val city = response.getJSONObject("location").get("name") as String
     val lastUpdate =
-        formatDate(
-            response.getJSONObject("current").get("last_updated") as String,
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
-            DateTimeFormatter.ofPattern("d MMM HH:mm", Locale.ENGLISH),
+        ResponseStorage.lastUpdate.format(
+            DateTimeFormatter.ofPattern(
+                "d MMM HH:mm",
+                Locale.ENGLISH,
+            ),
         )
     val day = response.getJSONObject("forecast").getJSONArray("forecastday")[dayShift] as JSONObject
     val maxTemp = proccessTemp(day.getJSONObject("day").get("maxtemp_c") as Double)
@@ -101,11 +122,12 @@ fun getMainScreenInfo(
             )
     } else {
         date = day.get("date") as String
-        curTemp = proccessTemp(day.getJSONObject("day").get("avgtemp_c") as Double)
+        val dayInfo = day.getJSONObject("day")
+        curTemp = proccessTemp(dayInfo.get("avgtemp_c") as Double)
         condition =
             Condition(
-                imageUrl = day.getJSONObject("condition").get("icon") as String,
-                condition = day.getJSONObject("condition").get("text") as String,
+                imageUrl = dayInfo.getJSONObject("condition").get("icon") as String,
+                condition = dayInfo.getJSONObject("condition").get("text") as String,
             )
     }
 
@@ -117,5 +139,6 @@ fun getMainScreenInfo(
         maxTemp = maxTemp,
         minTemp = minTemp,
         condition = condition,
+        hours = getHoursWeather(response, dayShift),
     )
 }
