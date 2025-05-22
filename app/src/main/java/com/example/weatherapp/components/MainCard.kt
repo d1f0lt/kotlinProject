@@ -1,5 +1,8 @@
 package com.example.weatherapp.components
 
+import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,7 +30,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.R
+import com.example.weatherapp.data.ResponseStorage
 import com.example.weatherapp.data.WeatherMainInfo
+import com.example.weatherapp.data.getMainScreenInfo
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -42,9 +47,13 @@ fun Background() {
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun MainCard(cardInfo: MutableState<WeatherMainInfo>) {
+fun MainCard(
+    cardInfo: MutableState<WeatherMainInfo>,
+    context: Context,
+) {
     Column(
         modifier =
             Modifier
@@ -131,7 +140,11 @@ fun MainCard(cardInfo: MutableState<WeatherMainInfo>) {
                             color = Color.White.copy(alpha = 0.5f),
                         )
                         IconButton(
-                            onClick = {},
+                            onClick = {
+                                ResponseStorage.updateAndDoWithResponse(context) { json ->
+                                    cardInfo.value = getMainScreenInfo(json)
+                                }
+                            },
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.sync),

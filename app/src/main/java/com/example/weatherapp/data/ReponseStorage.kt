@@ -21,6 +21,24 @@ object ResponseStorage {
 
     private fun getApiKey(): String = "f2cd0ec5671e4c85b6f83223251205"
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun updateAndDoWithResponse(
+        context: Context,
+        callback: (JSONObject) -> Unit,
+    ) {
+        val refreshRateInSecond = 60 * 2
+        if (::lastUpdate.isInitialized &&
+            Duration
+                .between(
+                    lastUpdate,
+                    LocalDateTime.now(),
+                ).seconds < refreshRateInSecond
+        ) {
+            return
+        }
+        fetchData(curCity, context, callback)
+    }
+
     fun doWithResponse(callback: (JSONObject) -> Unit) {
         assert(::curCity.isInitialized)
         callback(weatherInfo)
@@ -56,19 +74,6 @@ object ResponseStorage {
         context: Context,
         callback: (JSONObject) -> Unit,
     ) {
-        val refreshRateInSecond = 60 * 2
-
-        if (::lastUpdate.isInitialized &&
-            city == curCity &&
-            Duration
-                .between(
-                    lastUpdate,
-                    LocalDateTime.now(),
-                ).seconds < refreshRateInSecond
-        ) {
-            return
-        }
-
         val weatherApiUrl = buildUrl(city)
 
         val request =

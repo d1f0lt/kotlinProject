@@ -85,7 +85,7 @@ fun MainScreen(context: Context) {
                     ),
                 )
 
-            MainCard(mainCardData)
+            MainCard(mainCardData, context)
             Tabs(mainCardData, getDaysWeather(weatherData!!))
         }
     }
