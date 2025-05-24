@@ -62,8 +62,12 @@ private fun getHoursWeather(
     val result = mutableListOf<WeatherCardInfo>()
 
     val dayInfo = (days[day] as JSONObject).getJSONArray("hour")
+    val curHour = LocalDateTime.now().hour
     for (i in 0 until dayInfo.length()) {
         val hour = dayInfo[i] as JSONObject
+        if (day == 0 && curHour > i) {
+            continue
+        }
         result.add(
             WeatherCardInfoPerHour(
                 hour =

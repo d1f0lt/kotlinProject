@@ -11,7 +11,6 @@ import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.json.JSONObject
-import java.time.Duration
 import java.time.LocalDateTime
 
 object ResponseStorage {
@@ -26,16 +25,6 @@ object ResponseStorage {
         context: Context,
         callback: (JSONObject) -> Unit,
     ) {
-        val refreshRateInSecond = 60 * 2
-        if (::lastUpdate.isInitialized &&
-            Duration
-                .between(
-                    lastUpdate,
-                    LocalDateTime.now(),
-                ).seconds < refreshRateInSecond
-        ) {
-            return
-        }
         fetchData(curCity, context, callback)
     }
 
