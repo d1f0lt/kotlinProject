@@ -60,6 +60,7 @@ fun Background() {
 fun MainCard(
     cardInfo: MutableState<WeatherMainInfo>,
     context: Context,
+    onSearchClick: () -> Unit,
 ) {
     Column(
         modifier =
@@ -91,12 +92,14 @@ fun MainCard(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     IconButton(
-                        onClick = {},
+                        onClick = {
+                            onSearchClick()
+                        },
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.plus),
+                            painter = painterResource(id = R.drawable.search),
                             contentDescription = "Plus",
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier.size(28.dp),
                             tint = Color.White,
                         )
                     }
@@ -149,12 +152,12 @@ fun MainCard(
 
                         IconButton(
                             onClick = {
-                                val refreshRateInSecond = 60 * 2
+                                val refreshRateInSeconds = 5
                                 if (Duration
                                         .between(
                                             lastUpdate,
                                             LocalDateTime.now(),
-                                        ).seconds < refreshRateInSecond
+                                        ).seconds < refreshRateInSeconds
                                 ) {
                                 } else {
                                     ResponseStorage.updateAndDoWithResponse(context) { json ->

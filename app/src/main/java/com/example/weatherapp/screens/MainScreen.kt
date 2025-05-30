@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import com.example.weatherapp.components.Background
+import com.example.weatherapp.components.DialogSearch
 import com.example.weatherapp.components.MainCard
 import com.example.weatherapp.components.Tabs
 import com.example.weatherapp.data.ResponseStorage
@@ -58,7 +59,15 @@ fun MainScreen(context: Context) {
                     ),
                 )
 
-            MainCard(mainCardData, context)
+            val searchDialogFlag = remember { mutableStateOf(false) }
+
+            if (searchDialogFlag.value) {
+                DialogSearch(searchDialogFlag, onSubmit = { newCity ->
+                    city = newCity
+                })
+            }
+
+            MainCard(mainCardData, context, onSearchClick = { searchDialogFlag.value = true })
             Tabs(mainCardData, getDaysWeather(weatherData!!))
         }
     }

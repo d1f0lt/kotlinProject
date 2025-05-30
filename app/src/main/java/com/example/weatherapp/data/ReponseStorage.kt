@@ -18,7 +18,7 @@ object ResponseStorage {
     private lateinit var curCity: String
     lateinit var lastUpdate: LocalDateTime private set
 
-    private fun getApiKey(): String = "f2cd0ec5671e4c85b6f83223251205"
+    private fun getApiKey(): String = "b6eda305f6904b0a9ab152658253005"
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateAndDoWithResponse(
