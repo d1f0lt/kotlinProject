@@ -21,10 +21,11 @@ import com.example.weatherapp.data.WeatherMainInfo
 import com.example.weatherapp.data.getCity
 import com.example.weatherapp.data.getDaysWeather
 import com.example.weatherapp.data.getMainScreenInfo
+import com.example.weatherapp.helpers.LocationHelper
 import org.json.JSONObject
 
 @SuppressLint("UnrememberedMutableState")
-@RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun MainScreen(context: Context) {
@@ -32,7 +33,7 @@ fun MainScreen(context: Context) {
     var city by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        city = getCity(context)
+        city = getCity(context, LocationHelper(context))
     }
 
     LaunchedEffect(city) {
