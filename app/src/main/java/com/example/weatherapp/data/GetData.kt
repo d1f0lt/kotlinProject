@@ -54,7 +54,7 @@ fun getDaysWeather(response: JSONObject): List<WeatherCardInfo> {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun getHoursWeather(
+public fun getHoursWeather(
     response: JSONObject,
     day: Int = 0,
 ): List<WeatherCardInfo> {
