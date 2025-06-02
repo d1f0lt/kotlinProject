@@ -1,53 +1,74 @@
 package com.example.weatherapp.screens
 
-import androidx.compose.foundation.Image
+import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
-import com.example.weatherapp.R
-import com.example.weatherapp.ui.theme.BlueSoft
-import com.example.weatherapp.ui.theme.Purple40
+import com.example.weatherapp.components.Background
+import com.example.weatherapp.components.DialogSearch
+import com.example.weatherapp.components.MainCard
+import com.example.weatherapp.components.Tabs
+import com.example.weatherapp.data.ResponseStorage
+import com.example.weatherapp.data.WeatherMainInfo
+import com.example.weatherapp.data.getCity
+import com.example.weatherapp.data.getDaysWeather
+import com.example.weatherapp.data.getMainScreenInfo
+import com.example.weatherapp.helpers.LocationHelper
+import org.json.JSONObject
 
-@Preview(showBackground = true)
+@SuppressLint("UnrememberedMutableState")
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+@Suppress("ktlint:standard:function-naming")
 @Composable
-fun MainScreen() {
-    Image(
-        painter = painterResource(id = R.drawable.bg),
-        contentDescription = "Background",
-        modifier = Modifier
-            .fillMaxSize()
-            .alpha(0.7f),
-        contentScale = ContentScale.Crop
-    )
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(5.dp)
-    ) {
-        Card(
-            modifier = Modifier.fillMaxSize(),
-            colors = CardDefaults.cardColors(
-                containerColor = BlueSoft
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 0.dp
-            ),
-            shape = RoundedCornerShape(20.dp)
-        ) {
+fun MainScreen(context: Context) {
+    var weatherData by remember { mutableStateOf<JSONObject?>(null) }
+    var city by remember { mutableStateOf<String?>(null) }
 
+    LaunchedEffect(Unit) {
+        city = getCity(context, LocationHelper(context))
+    }
+
+    LaunchedEffect(city) {
+        city?.let {
+            ResponseStorage.doWithResponse(city!!, context) { json ->
+                weatherData = json
+            }
+        }
+    }
+
+    if (weatherData == null) {
+        LoadingScreen()
+    } else {
+        Background()
+        Column(
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            var mainCardData =
+                mutableStateOf<WeatherMainInfo>(
+                    getMainScreenInfo(
+                        weatherData!!,
+                    ),
+                )
+
+            val searchDialogFlag = remember { mutableStateOf(false) }
+
+            if (searchDialogFlag.value) {
+                DialogSearch(searchDialogFlag, onSubmit = { newCity ->
+                    city = newCity
+                })
+            }
+
+            MainCard(mainCardData, context, onSearchClick = { searchDialogFlag.value = true })
+            Tabs(mainCardData, getDaysWeather(weatherData!!))
         }
     }
 }
